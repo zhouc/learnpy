@@ -17,5 +17,7 @@ end11 = "e"
 end12 = "r"
 
 #watch that comma at the end. try removing it to see what happens
+#输出end1到end6的字符组成的结果
 print end1 + end2 + end3 + end4 + end5 +end6,
+#输出end7到end12的字符组成的结果
 print end7 + end8 + end9 + end10 + end11 + end12
