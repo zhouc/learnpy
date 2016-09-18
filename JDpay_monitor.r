@@ -3,7 +3,7 @@ data_pay<-read.csv("D:\\工作文件\\外部支付场景风控\\外部支付拦�
 #处理表头
 colnum<-ncol(data_pay)
 for(i in 1:colnum){
-colnames(data_pay)[i]<- unlist(strsplit(colnames(data_pay)[i],".",fixed = TRUE))[2]
+        colnames(data_pay)[i]<- unlist(strsplit(colnames(data_pay)[i],".",fixed = TRUE))[2]
 }
 #京东支付
 library(dplyr)
@@ -39,11 +39,15 @@ m = list(
         t = 100,
         pad = 4
 )
-plot_jd1<-jd_pay %>% filter(source == "京东支付") %>% 
-        plot_ly(x = date,y = pin_num,color = type,type ="bar") %>% 
-        layout(barmode = "stack", width = 500, height = 500, margin = m)
 
-plot_jd2<-plot_ly(jdpay_rate_02,x=date,y=verify_rate,line = list(shape = "spline")) %>%
-        layout(barmode = "stack", width = 500, height = 500, margin = m)
-htmltools::tagList(list(as.widget(plot_jd1),as.widget(plot_jd2)))
+subplot(
+        plot_ly(jd_pay %>% filter(source == "京东支付"),x = date,y = pin_num,color = type,type ="bar") %>% 
+                layout(barmode = "stack", width = 1200, height = 500, margin = m),
+        plot_ly(jdpay_rate_02,x=date,y=verify_rate,line = list(shape = "spline")),
+        margin = 0.05
+) %>% layout(showlegend = FALSE)
+
+
+
+
 
