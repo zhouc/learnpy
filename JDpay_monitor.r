@@ -44,10 +44,29 @@ subplot(
         plot_ly(jd_pay %>% filter(source == "京东支付"),x = date,y = pin_num,color = type,type ="bar") %>% 
                 layout(barmode = "stack", width = 1200, height = 500, margin = m),
         plot_ly(jdpay_rate_02,x=date,y=verify_rate,line = list(shape = "spline")),
-        margin = 0.05
+        plot_ly(jd_pay %>% filter(source == "京东支付"),x = date,y = pin_num,color = type,type ="bar") %>% 
+                layout(barmode = "stack", width = 1200, height = 500, margin = m),
+        plot_ly(jdpay_rate_02,x=date,y=verify_rate,line = list(shape = "spline")),
+        margin = 0.05,
+        nrow =2
 ) %>% layout(showlegend = FALSE)
 
+subplot(
+        plot_ly(jdpay_rate_02,x=date,y=verify_rate),
+        plot_ly(jdpay_rate_02,x=date,date),
+        margin = 0.05,
+        ncol =2
+) %>% layout(showlegend = FALSE)
 
+# Basic subplot
+library(plotly)
+p <- subplot(
+        plot_ly(economics, x = date, y = uempmed),
+        plot_ly(economics, x = date, y = unemploy),
+        margin = 0.05,
+        nrows=4
+) %>% layout(showlegend = FALSE)
+p
 
 
 
