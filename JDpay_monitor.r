@@ -1,5 +1,5 @@
 #导入支付数据
-data_pay<-read.csv("D:\\工作文件\\外部支付场景风控\\外部支付拦截监控\\paydatafile.csv")
+data_pay<-read.csv("E:\\learnpy\\paydatafile.csv")
 #处理表头
 colnum<-ncol(data_pay)
 for(i in 1:colnum){
@@ -13,22 +13,55 @@ jd_pay<- data_pay %>% tbl_df() %>%
         mutate(source = ifelse(sourcetype == 'BT-WAIDAN-JDPAY','京东支付',ifelse(sourcetype == 'BT-SHANFU','银联闪付',ifelse(sourcetype == 'BT-WAIDAN-QB','钱包支付',ifelse(sourcetype == 'BT-DJ-JDPAY','京东到家','其他'))))) %>%
         select(date,source,type,pin_num,hit_num) %>% 
         arrange(source,type)
-library(reshape2)
-jd_pay_0<- jd_pay %>% filter(source =='京东支付') %>% select (-hit_num)
+library(reshape)
+jd_pay_0<- jd_pay %>%  select (-hit_num)
 jdpay_rate_01<-melt(as.data.frame(jd_pay_0),id = c('date','source','type'))
 jdpay_rate_02<-cast(jdpay_rate_01,date + source ~ type,sum) %>% 
         tbl_df() %>%        
         mutate(verify_rate = 加验 /(加验+通过))
 #使用ggplot2画图
 library(ggplot2)
-ggplot(jd_pay,aes(x=date,y=pin_num,fill = type)) + geom_bar(stat = "identity")+
-        ggtitle("支付") +
+library(plyr)
+jd_pay_001<-ddply(jd_pay,.(date,source),transform,label_y=cumsum(pin_num))
+jd1<-ggplot(jd_pay_001,aes(x=date,y=pin_num,fill = type)) + 
+        geom_bar(stat = "identity")+
+        ggtitle("天盾安全_外部支付") +
+        geom_text(aes(y=label_y,label =pin_num),vjust = 1.5,color = "white",size =3)+
         theme(axis.text.x= element_text(size = 6,colour = "black"),
               axis.text.y= element_text(size = 6,colour = "black"),
               legend.text =element_text(size = 6))+
-        facet_grid(source ~ .)+
+        facet_grid(. ~ source)+
         xlab("日期")+
         ylab("数量")
+
+jd2<-ggplot(jdpay_rate_02,aes(x=date,y=verify_rate)) + 
+        geom_line()+
+        theme(axis.text.x= element_text(size = 6,colour = "black"),
+              axis.text.y= element_text(size = 6,colour = "black"),
+              legend.text =element_text(size = 6))+
+        facet_grid(. ~ source)+
+        xlab("日期")+
+        ylab("加验率")
+
+jd1
+
+library(grid)
+pdf("JD_PAY_verify.pdf",width = 16,height = 12)
+grid.newpage()
+pushViewport(viewport(layout = grid.layout(2,2)))
+vplayout<-function(x,y)
+        viewport(layout.pos.row = x,layout.pos.col = y)
+print(jd1,vp = vplayout(1,1:2))
+print(jd2,vp = vplayout(2,1:2))
+dev.off()
+
+
+
+
+
+
+
+
 
 #使用plotly画图
 library(plotly)
@@ -44,29 +77,10 @@ subplot(
         plot_ly(jd_pay %>% filter(source == "京东支付"),x = date,y = pin_num,color = type,type ="bar") %>% 
                 layout(barmode = "stack", width = 1200, height = 500, margin = m),
         plot_ly(jdpay_rate_02,x=date,y=verify_rate,line = list(shape = "spline")),
-        plot_ly(jd_pay %>% filter(source == "京东支付"),x = date,y = pin_num,color = type,type ="bar") %>% 
-                layout(barmode = "stack", width = 1200, height = 500, margin = m),
-        plot_ly(jdpay_rate_02,x=date,y=verify_rate,line = list(shape = "spline")),
-        margin = 0.05,
-        nrow =2
+        margin = 0.05
 ) %>% layout(showlegend = FALSE)
 
-subplot(
-        plot_ly(jdpay_rate_02,x=date,y=verify_rate),
-        plot_ly(jdpay_rate_02,x=date,date),
-        margin = 0.05,
-        ncol =2
-) %>% layout(showlegend = FALSE)
 
-# Basic subplot
-library(plotly)
-p <- subplot(
-        plot_ly(economics, x = date, y = uempmed),
-        plot_ly(economics, x = date, y = unemploy),
-        margin = 0.05,
-        nrows=4
-) %>% layout(showlegend = FALSE)
-p
 
 
 
