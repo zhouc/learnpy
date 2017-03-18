@@ -1,38 +1,38 @@
-#µ¼ÈëÖ§¸¶Êı¾İ
+#å¯¼å…¥æ”¯ä»˜æ•°æ®
 data_pay<-read.csv("E:\\learnpy\\paydatafile.csv")
-#´¦Àí±íÍ·
+#å¤„ç†è¡¨å¤´
 colnum<-ncol(data_pay)
 for(i in 1:colnum){
-  colnames(data_pay)[i]<- unlist(strsplit(colnames(data_pay)[i],".",fixed = TRUE))[2]
+        colnames(data_pay)[i]<- unlist(strsplit(colnames(data_pay)[i],".",fixed = TRUE))[2]
 }
-#¾©¶«Ö§¸¶
+#äº¬ä¸œæ”¯ä»˜
 library(dplyr)
 jd_pay<- data_pay %>% tbl_df() %>% 
-  mutate(date = as.Date(paste(substr(dt,1,4),"/",substr(dt,5,6),"/",substr(dt,7,8),sep =""))) %>%
-  mutate(type = ifelse(code == 0,'Í¨¹ı',ifelse(code == 80000,'¼ÓÑé',ifelse(code == 90000,'À¹½Ø','ÆäËû')))) %>%
-  mutate(source = ifelse(sourcetype == 'BT-WAIDAN-JDPAY','¾©¶«Ö§¸¶',ifelse(sourcetype == 'BT-SHANFU','ÒøÁªÉÁ¸¶',ifelse(sourcetype == 'BT-WAIDAN-QB','Ç®°üÖ§¸¶',ifelse(sourcetype == 'BT-DJ-JDPAY','¾©¶«µ½¼Ò','ÆäËû'))))) %>%
-  select(date,source,type,pin_num,hit_num) %>% 
-  arrange(source,type)
+        mutate(date = as.Date(paste(substr(dt,1,4),"/",substr(dt,5,6),"/",substr(dt,7,8),sep =""))) %>%
+        mutate(type = ifelse(code == 0,'é€šè¿‡',ifelse(code == 80000,'åŠ éªŒ',ifelse(code == 90000,'æ‹¦æˆª','å…¶ä»–')))) %>%
+        mutate(source = ifelse(sourcetype == 'BT-WAIDAN-JDPAY','äº¬ä¸œæ”¯ä»˜',ifelse(sourcetype == 'BT-SHANFU','é“¶è”é—ªä»˜',ifelse(sourcetype == 'BT-WAIDAN-QB','é’±åŒ…æ”¯ä»˜',ifelse(sourcetype == 'BT-DJ-JDPAY','äº¬ä¸œåˆ°å®¶','å…¶ä»–'))))) %>%
+        select(date,source,type,pin_num,hit_num) %>% 
+        arrange(source,type)
 library(reshape)
 jd_pay_0<- jd_pay %>%  select (-hit_num)
 jdpay_rate_01<-melt(as.data.frame(jd_pay_0),id = c('date','source','type'))
 jdpay_rate_02<-cast(jdpay_rate_01,date + source ~ type,sum) %>% 
         tbl_df() %>%        
-        mutate(verify_rate = ¼ÓÑé /(¼ÓÑé+Í¨¹ı))
-#Ê¹ÓÃggplot2»­Í¼
+        mutate(verify_rate = åŠ éªŒ /(åŠ éªŒ+é€šè¿‡))
+#ä½¿ç”¨ggplot2ç”»å›¾
 library(ggplot2)
 library(plyr)
 jd_pay_001<-ddply(jd_pay,.(date,source),transform,label_y=cumsum(pin_num))
 jd1<-ggplot(jd_pay_001,aes(x=date,y=pin_num,fill = type)) + 
         geom_bar(stat = "identity")+
-        ggtitle("Ìì¶Ü°²È«_Íâ²¿Ö§¸¶") +
+        ggtitle("å¤©ç›¾å®‰å…¨_å¤–éƒ¨æ”¯ä»˜") +
         geom_text(aes(y=label_y,label =pin_num),vjust = 1.5,color = "white",size =3)+
         theme(axis.text.x= element_text(size = 6,colour = "black"),
               axis.text.y= element_text(size = 6,colour = "black"),
               legend.text =element_text(size = 6))+
         facet_grid(. ~ source)+
-        xlab("ÈÕÆÚ")+
-        ylab("ÊıÁ¿")
+        xlab("æ—¥æœŸ")+
+        ylab("æ•°é‡")
 
 jd2<-ggplot(jdpay_rate_02,aes(x=date,y=verify_rate)) + 
         geom_line()+
@@ -40,9 +40,11 @@ jd2<-ggplot(jdpay_rate_02,aes(x=date,y=verify_rate)) +
               axis.text.y= element_text(size = 6,colour = "black"),
               legend.text =element_text(size = 6))+
         facet_grid(. ~ source)+
-        xlab("ÈÕÆÚ")+
-        ylab("¼ÓÑéÂÊ")
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+        xlab("æ—¥æœŸ")+
+        ylab("åŠ éªŒç‡")
+
+jd1
+
 library(grid)
 pdf("JD_PAY_verify.pdf",width = 16,height = 12)
 grid.newpage()
@@ -61,21 +63,21 @@ dev.off()
 
 
 
-#Ê¹ÓÃplotly»­Í¼
+#ä½¿ç”¨plotlyç”»å›¾
 library(plotly)
 m = list(
-  l = 50,
-  r = 50,
-  b = 100,
-  t = 100,
-  pad = 4
+        l = 50,
+        r = 50,
+        b = 100,
+        t = 100,
+        pad = 4
 )
 
 subplot(
-  plot_ly(jd_pay %>% filter(source == "¾©¶«Ö§¸¶"),x = date,y = pin_num,color = type,type ="bar") %>% 
-    layout(barmode = "stack", width = 1200, height = 500, margin = m),
-  plot_ly(jdpay_rate_02,x=date,y=verify_rate,line = list(shape = "spline")),
-  margin = 0.05
+        plot_ly(jd_pay %>% filter(source == "äº¬ä¸œæ”¯ä»˜"),x = date,y = pin_num,color = type,type ="bar") %>% 
+                layout(barmode = "stack", width = 1200, height = 500, margin = m),
+        plot_ly(jdpay_rate_02,x=date,y=verify_rate,line = list(shape = "spline")),
+        margin = 0.05
 ) %>% layout(showlegend = FALSE)
 
 
