@@ -1,3 +1,4 @@
+#-- coding: utf-8 --
 #输出整数
 x = "There are %d types of people." % 10
 #赋值
